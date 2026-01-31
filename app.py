@@ -88,7 +88,7 @@ def generate_pdf(data):
 def download_report(patient_id):
     docs = db.collection("health_data") \
              .where("patient_id", "==", patient_id) \
-             .order_by("timestamp", direction=firestore.Query.DESCENDING) \
+             .order_by(ist_time, direction=firestore.Query.DESCENDING) \
              .limit(1).stream()
 
     for doc in docs:

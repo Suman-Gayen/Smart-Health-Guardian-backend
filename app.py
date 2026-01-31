@@ -4,7 +4,7 @@ import firebase_admin
 from firebase_admin import credentials, firestore
 from fpdf import FPDF
 from datetime import datetime
-from datetime import timedelta
+#from datetime import timedelta
 
 #Handle Firebase Key
 import os
@@ -33,7 +33,7 @@ def upload_data():
     db.collection("health_data").add(record)
     return {"status": "Data stored successfully"}
 
-ist_time = data["timestamp"] + timedelta(hours=5, minutes=30)
+#ist_time = data["timestamp"] + timedelta(hours=5, minutes=30)
 
 #step 4
 def health_status(temp):
@@ -67,8 +67,8 @@ def generate_pdf(data):
     pdf.cell(200, 10, f"Humidity: {data['humidity']} %", ln=True)
     pdf.cell(200, 10, f"Health Status: {status}", ln=True)
     pdf.cell(200, 10, f"Description: {desc}", ln=True)
-    #pdf.cell(200, 10, f"Date: {data['timestamp']}", ln=True)
-    pdf.cell(200, 10, f"Date & Time (IST): {ist_time}", ln=True)
+    pdf.cell(200, 10, f"Date: {data['timestamp']}", ln=True)
+    #pdf.cell(200, 10, f"Date & Time (IST): {ist_time}", ln=True)
 
     #file_path = "reports/health_report.pdf"
     file_path = f"reports/{data['patient_id']}_report.pdf"

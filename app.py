@@ -4,7 +4,8 @@ import firebase_admin
 from firebase_admin import credentials, firestore
 from fpdf import FPDF
 from datetime import datetime
-import pytz
+from datetime import timedelta
+#import pytz
 
 
 
@@ -34,14 +35,7 @@ def upload_data():
     db.collection("health_data").add(record)
     return {"status": "Data stored successfully"}
 
-def convert_utc_to_ist(utc_time):
-    utc_zone = pytz.utc
-    ist_zone = pytz.timezone("Asia/Kolkata")
 
-    utc_time = utc_zone.localize(utc_time)
-    ist_time = utc_time.astimezone(ist_zone)
-
-    return ist_time.strftime("%d-%m-%Y %I:%M:%S %p")
 
 #step 4
 def health_status(temp):
@@ -67,8 +61,9 @@ def generate_pdf(data):
     pdf.set_font("Arial", size=12)
     status = health_status(data["temperature"])
     desc = recommendation(status)
-    ist_time = convert_utc_to_ist(data["timestamp"])
-
+   # ist_time = convert_utc_to_ist(data["timestamp"])
+    ist_time = data["timestamp"] + timedelta(hours=5, minutes=30)
+    
     pdf.cell(200, 10, "SMART HEALTH REPORT", ln=True, align="C")
     pdf.ln(10)
     pdf.cell(200, 10, f"Patient ID: {data['patient_id']}", ln=True)
@@ -88,7 +83,7 @@ def generate_pdf(data):
 def download_report(patient_id):
     docs = db.collection("health_data") \
              .where("patient_id", "==", patient_id) \
-             .order_by(ist_time, direction=firestore.Query.DESCENDING) \
+             .order_by("timestamp", direction=firestore.Query.DESCENDING) \
              .limit(1).stream()
 
     for doc in docs:

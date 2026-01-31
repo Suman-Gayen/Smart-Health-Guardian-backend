@@ -10,8 +10,7 @@ DHT dht(DHTPIN, DHTTYPE);
 const char* ssid = "suman";
 const char* password = "12345678";
 const char* serverURL = "https://smart-health-api-m32s.onrender.com/upload";
-// const char* serverURL = "http://10.117.60.64:5000/upload";
-// https://smart-health-api-m32s.onrender.com/download/P32697
+
 // =======
 String generatePatientID() {
   uint32_t randNum = esp_random() % 100000; // 0–99999

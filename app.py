@@ -4,11 +4,11 @@ import firebase_admin
 from firebase_admin import credentials, firestore
 from fpdf import FPDF
 from datetime import datetime
+from datetime import timedelta
 
 #Handle Firebase Key
 import os
 import json
-
 
 #step 2
 app = Flask(__name__)
@@ -33,6 +33,8 @@ def upload_data():
     db.collection("health_data").add(record)
     return {"status": "Data stored successfully"}
 
+ist_time = data["timestamp"] + timedelta(hours=5, minutes=30)
+
 #step 4
 def health_status(temp):
     if temp < 37:
@@ -55,19 +57,18 @@ def generate_pdf(data):
     pdf = FPDF()
     pdf.add_page()
     pdf.set_font("Arial", size=12)
-
     status = health_status(data["temperature"])
     desc = recommendation(status)
     
     pdf.cell(200, 10, "SMART HEALTH REPORT", ln=True, align="C")
     pdf.ln(10)
-
     pdf.cell(200, 10, f"Patient ID: {data['patient_id']}", ln=True)
     pdf.cell(200, 10, f"Temperature: {data['temperature']} °C", ln=True)
     pdf.cell(200, 10, f"Humidity: {data['humidity']} %", ln=True)
     pdf.cell(200, 10, f"Health Status: {status}", ln=True)
     pdf.cell(200, 10, f"Description: {desc}", ln=True)
-    pdf.cell(200, 10, f"Date: {data['timestamp']}", ln=True)
+    #pdf.cell(200, 10, f"Date: {data['timestamp']}", ln=True)
+    pdf.cell(200, 10, f"Date & Time (IST): {ist_time}", ln=True)
 
     #file_path = "reports/health_report.pdf"
     file_path = f"reports/{data['patient_id']}_report.pdf"

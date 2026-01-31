@@ -5,10 +5,17 @@ from firebase_admin import credentials, firestore
 from fpdf import FPDF
 from datetime import datetime
 
+#Handle Firebase Key
+import os
+import json
+
+
 #step 2
 app = Flask(__name__)
 
-cred = credentials.Certificate("firebase_key.json")
+#cred = credentials.Certificate("firebase_key.json")
+firebase_key = json.loads(os.environ.get("FIREBASE_KEY"))
+cred = credentials.Certificate(firebase_key)
 firebase_admin.initialize_app(cred)
 db = firestore.client()
 #step 3

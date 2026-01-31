@@ -5,9 +5,6 @@ from firebase_admin import credentials, firestore
 from fpdf import FPDF
 from datetime import datetime
 from datetime import timedelta
-#import pytz
-
-
 
 #Handle Firebase Key
 import os
@@ -35,8 +32,6 @@ def upload_data():
     db.collection("health_data").add(record)
     return {"status": "Data stored successfully"}
 
-
-
 #step 4
 def health_status(temp):
     if temp < 37:
@@ -61,8 +56,8 @@ def generate_pdf(data):
     pdf.set_font("Arial", size=12)
     status = health_status(data["temperature"])
     desc = recommendation(status)
-   # ist_time = convert_utc_to_ist(data["timestamp"])
-    #ist_time = data["timestamp"] + timedelta(hours=5, minutes=30)
+
+    ist_time = data["timestamp"] + timedelta(hours=5, minutes=30)
     
     pdf.cell(200, 10, "SMART HEALTH REPORT", ln=True, align="C")
     pdf.ln(10)
@@ -71,8 +66,7 @@ def generate_pdf(data):
     pdf.cell(200, 10, f"Humidity: {data['humidity']} %", ln=True)
     pdf.cell(200, 10, f"Health Status: {status}", ln=True)
     pdf.cell(200, 10, f"Description: {desc}", ln=True)
-   # pdf.cell(200, 10, f"Date: {data['timestamp']}", ln=True)
-    pdf.cell(200, 10, f"Date & Time (IST): {datetime.now()}", ln=True)
+    pdf.cell(200, 10, f"Date & Time (IST): {ist_time}", ln=True)
 
     file_path = f"reports/{data['patient_id']}_report.pdf"
     pdf.output(file_path)
@@ -95,5 +89,5 @@ def download_report(patient_id):
 
 #step 7
 if __name__ == "__main__":
-    #app.run(host="0.0.0.0", port=5000, debug=True)
      app.run()
+     #app.run(host="0.0.0.0", port=5000, debug=True)

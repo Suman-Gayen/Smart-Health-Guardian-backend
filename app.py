@@ -4,7 +4,9 @@ import firebase_admin
 from firebase_admin import credentials, firestore
 from fpdf import FPDF
 from datetime import datetime
-#from datetime import timedelta
+import pytz
+
+
 
 #Handle Firebase Key
 import os
@@ -29,11 +31,17 @@ def upload_data():
         "humidity": data['humidity'],
         "timestamp": datetime.now()
     }
-
     db.collection("health_data").add(record)
     return {"status": "Data stored successfully"}
 
-#ist_time = data["timestamp"] + timedelta(hours=5, minutes=30)
+def convert_utc_to_ist(utc_time):
+    utc_zone = pytz.utc
+    ist_zone = pytz.timezone("Asia/Kolkata")
+
+    utc_time = utc_zone.localize(utc_time)
+    ist_time = utc_time.astimezone(ist_zone)
+
+    return ist_time.strftime("%d-%m-%Y %I:%M:%S %p")
 
 #step 4
 def health_status(temp):
@@ -59,7 +67,8 @@ def generate_pdf(data):
     pdf.set_font("Arial", size=12)
     status = health_status(data["temperature"])
     desc = recommendation(status)
-    
+    ist_time = convert_utc_to_ist(data["timestamp"])
+
     pdf.cell(200, 10, "SMART HEALTH REPORT", ln=True, align="C")
     pdf.ln(10)
     pdf.cell(200, 10, f"Patient ID: {data['patient_id']}", ln=True)
@@ -67,10 +76,9 @@ def generate_pdf(data):
     pdf.cell(200, 10, f"Humidity: {data['humidity']} %", ln=True)
     pdf.cell(200, 10, f"Health Status: {status}", ln=True)
     pdf.cell(200, 10, f"Description: {desc}", ln=True)
-    pdf.cell(200, 10, f"Date: {data['timestamp']}", ln=True)
-    #pdf.cell(200, 10, f"Date & Time (IST): {ist_time}", ln=True)
+   # pdf.cell(200, 10, f"Date: {data['timestamp']}", ln=True)
+    pdf.cell(200, 10, f"Date & Time (IST): {ist_time}", ln=True)
 
-    #file_path = "reports/health_report.pdf"
     file_path = f"reports/{data['patient_id']}_report.pdf"
     pdf.output(file_path)
     return file_path

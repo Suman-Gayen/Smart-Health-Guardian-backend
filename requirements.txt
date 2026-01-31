@@ -2,3 +2,4 @@ flask
 firebase-admin
 fpdf
 gunicorn
+pytz

@@ -94,11 +94,12 @@ def generate_pdf(data):
 #STEP6: /download/<patient_id> API
 @app.route('/download/<patient_id>')
 def download_report(patient_id):
-    #Fetch Latest Record
+     #Fetch Latest Record
     docs = db.collection("health_data") \
-             .where("patient_id", "==", patient_id) \ 
-             .order_by("timestamp", direction=firestore.Query.DESCENDING) \ 
-             .limit(1).stream() 
+             .where("patient_id", "==", patient_id) \
+             .order_by("timestamp", direction=firestore.Query.DESCENDING) \
+             .limit(1).stream()
+
 
     #Generate & Send PDF
     for doc in docs:

@@ -1,38 +1,57 @@
-#step 1
+'''
+===> Flask
+Flask→creates backend server that acts as a middleware between IoT devices and cloud storage, processing data and
+generating health reports dynamically
+request →receives data from ESP32
+send_file →sends PDF to user for download
+==>firebase_admin
+Connects Flask to Firebase Firestore
+==>credentials
+Authenticates Firebase using service account
+==>firestore
+Usedtostore and retrieve health data
+==>FPDF
+Generates PDF reports
+==>datetime
+Addstimestamp when data is stored
+==>timedelta
+Usedtoconvert UTC time → IST
+'''
+
+#Step1: call header file
 from flask import Flask, request, send_file
 import firebase_admin
 from firebase_admin import credentials, firestore
 from fpdf import FPDF
 from datetime import datetime
 from datetime import timedelta
+import os # Read Firebase credentials from environment variables
+import json # Required for cloud deployment
 
-#Handle Firebase Key
-import os
-import json
-
-#step 2
-app = Flask(__name__)
+#step 2 - Flask App & Firebase Initialization
+app = Flask(__name__) # Creates Flask application instance, __name__ tells Flask where the app is located
 
 #cred = credentials.Certificate("firebase_key.json")
-firebase_key = json.loads(os.environ.get("FIREBASE_KEY"))
-cred = credentials.Certificate(firebase_key)
-firebase_admin.initialize_app(cred)
-db = firestore.client()
-#step 3
+firebase_key = json.loads(os.environ.get("FIREBASE_KEY")) #Reads Firebase key from cloud environment(Render)
+cred = credentials.Certificate(firebase_key) #Converts JSON string → Python dictionary
+firebase_admin.initialize_app(cred) #Authenticates Firebase
+db = firestore.client() #Creates Firestore client object (db)
+
+#STEP3:/upload API (ESP32 →Server)
 @app.route('/upload', methods=['POST'])
 def upload_data():
-    data = request.json
-
+    data = request.json #Read JSON from ESP32
+    #Create Firestore Record
     record = {
         "patient_id": data['patient_id'],
         "temperature": data['temperature'],
         "humidity": data['humidity'],
         "timestamp": datetime.now()
     }
-    db.collection("health_data").add(record)
+    db.collection("health_data").add(record) #health_data →Firestore collection
     return {"status": "Data stored successfully"}
 
-#step 4
+# STEP4: Health Analysis Logic
 def health_status(temp):
     if temp < 37:
         return "NORMAL"
@@ -49,15 +68,15 @@ def recommendation( status ):
     else:
         return "Immediate medical attention required."
 
-#step 5
+# STEP5: PDF Generation Function
 def generate_pdf(data):
     pdf = FPDF()
     pdf.add_page()
     pdf.set_font("Arial", size=12)
-    status = health_status(data["temperature"])
-    desc = recommendation(status)
-
-    ist_time = data["timestamp"] + timedelta(hours=5, minutes=30)
+    status = health_status(data["temperature"]) # Calculates health condition
+    desc = recommendation(status) # Gets medical advice
+    
+    ist_time = data["timestamp"] + timedelta(hours=5, minutes=30) # Convert UTC →IST
     
     pdf.cell(200, 10, "SMART HEALTH REPORT", ln=True, align="C")
     pdf.ln(10)
@@ -67,27 +86,29 @@ def generate_pdf(data):
     pdf.cell(200, 10, f"Health Status: {status}", ln=True)
     pdf.cell(200, 10, f"Description: {desc}", ln=True)
     pdf.cell(200, 10, f"Date & Time (IST): {ist_time}", ln=True)
-
+    # Save PDF File
     file_path = f"reports/{data['patient_id']}_report.pdf"
     pdf.output(file_path)
     return file_path
 
-#step 6
+#STEP6: /download/<patient_id> API
 @app.route('/download/<patient_id>')
 def download_report(patient_id):
+    #Fetch Latest Record
     docs = db.collection("health_data") \
-             .where("patient_id", "==", patient_id) \
-             .order_by("timestamp", direction=firestore.Query.DESCENDING) \
-             .limit(1).stream()
+             .where("patient_id", "==", patient_id) \ #Filters by patient ID
+             .order_by("timestamp", direction=firestore.Query.DESCENDING) \ # Orders by latest timestamp 
+             .limit(1).stream() # Retrieves most recent data
 
+    #Generate & Send PDF
     for doc in docs:
-        data = doc.to_dict()
+        data = doc.to_dict() # Converts Firestore document → dictionary
         path = generate_pdf(data)
-        return send_file(path, as_attachment=True)
+        return send_file(path, as_attachment=True) # Sends file to browser for download
 
     return {"error": "No data found"}
 
-#step 7
+#STEP7: Run Flask Application
 if __name__ == "__main__":
      app.run()
      #app.run(host="0.0.0.0", port=5000, debug=True)

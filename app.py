@@ -96,9 +96,9 @@ def generate_pdf(data):
 def download_report(patient_id):
     #Fetch Latest Record
     docs = db.collection("health_data") \
-             .where("patient_id", "==", patient_id) \ #Filters by patient ID
-             .order_by("timestamp", direction=firestore.Query.DESCENDING) \ # Orders by latest timestamp 
-             .limit(1).stream() # Retrieves most recent data
+             .where("patient_id", "==", patient_id) \ 
+             .order_by("timestamp", direction=firestore.Query.DESCENDING) \ 
+             .limit(1).stream() 
 
     #Generate & Send PDF
     for doc in docs:

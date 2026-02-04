@@ -44,27 +44,27 @@ def upload_data():
     #Create Firestore Record
     record = {
         "patient_id": data['patient_id'],
-        "temperature": data['temperature'],
-        "humidity": data['humidity'],
+        "HeartRate": data['heartrate'],
+        "SpO2": data['spo2'],
         "timestamp": datetime.now()
     }
     db.collection("health_data").add(record) #health_data →Firestore collection
     return {"status": "Data stored successfully"}
 
 # STEP4: Health Analysis Logic
-def health_status(temp):
-    if temp < 37:
-        return "NORMAL"
-    elif 37 <= temp < 50:
+def health_status(HR):
+    if HR  < 40:
         return "WARNING"
+    elif 40<= HR < 80:
+        return "NORMAL"
     else:
         return "CRITICAL"
 
 def recommendation( status ):
     if status == "NORMAL":
-        return "Patient condition is stable."
+        return "Patient condition is unhealthy."
     elif status == "WARNING":
-        return "Monitor temperature every 2 hours."
+        return "Patient condition is healthy."
     else:
         return "Immediate medical attention required."
 
@@ -72,17 +72,17 @@ def recommendation( status ):
 def generate_pdf(data):
     pdf = FPDF()
     pdf.add_page()
-    pdf.set_font("Arial", size=12)
-    status = health_status(data["temperature"]) # Calculates health condition
+    pdf.set_font("Arial", size=16)
+    status = health_status(data['heartrate']) # Calculates health condition
     desc = recommendation(status) # Gets medical advice
     
     ist_time = data["timestamp"] + timedelta(hours=5, minutes=30) # Convert UTC →IST
     
-    pdf.cell(200, 10, "SMART HEALTH REPORT", ln=True, align="C")
+    pdf.cell(300, 20, "SMART HEALTH REPORT", ln=True, align="C")
     pdf.ln(10)
     pdf.cell(200, 10, f"Patient ID: {data['patient_id']}", ln=True)
-    pdf.cell(200, 10, f"Temperature: {data['temperature']} °C", ln=True)
-    pdf.cell(200, 10, f"Humidity: {data['humidity']} %", ln=True)
+    pdf.cell(200, 10, f"Temperature: {data['heartrate']} °C", ln=True)
+    pdf.cell(200, 10, f"Humidity: {data['spo2']} %", ln=True)
     pdf.cell(200, 10, f"Health Status: {status}", ln=True)
     pdf.cell(200, 10, f"Description: {desc}", ln=True)
     pdf.cell(200, 10, f"Date & Time (IST): {ist_time}", ln=True)

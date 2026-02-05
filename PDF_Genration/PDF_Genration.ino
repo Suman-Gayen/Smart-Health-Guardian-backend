@@ -57,5 +57,7 @@ void loop() {
       http.POST(json);
       http.end();
     }
+  }else{
+    Serial.printf("Finger has not detected!");
   }
 }

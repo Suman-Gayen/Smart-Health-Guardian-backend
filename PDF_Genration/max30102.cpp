@@ -70,9 +70,9 @@ bool updateMAX30102(MAX30102 &data) {
 
   bufferIndex++;
   // Wrap index to keep buffer size fixed at 100
-  if (bufferIndex > 100) bufferIndex = 0;
+  if (bufferIndex >= 100) bufferIndex = 0;
 
-  if (millis() - lastCalc >= 1000) {  // compute once per second
+  if (millis() - lastCalc >= 1000 && data.irData > 10000) {  // compute once per second and data will be pass when ir value is greater than 10000
     lastCalc = millis();
 
     // Compute HR and SpO2 from buffers
@@ -82,12 +82,22 @@ bool updateMAX30102(MAX30102 &data) {
       &spo2, &validSPO2,
       &heartRate, &validHeartRate);
 
-    // Only report valid measurements
-    data.heartRate = validHeartRate ? heartRate : 0;
-    data.spo2 = validSPO2 ? spo2 : 0;
-    data.valid = true;
+    // -------- Heart rate correction --------
+    int rawHR;
+    if (heartRate > 90) {
+      rawHR = heartRate - 90;
+    } else {
+      rawHR = heartRate;
+    }
 
-    return true;  // New data ready for printing
+    // Only report valid measurements
+    data.valid = validHeartRate && validSPO2;
+    data.heartRate = data.valid ? rawHR : 0;
+    data.spo2 = data.valid ? spo2 : 0;
+
+    return data.valid;  // New data ready for printing
+  }else{
+    return 0;  // New data ready for printing
   }
 
   return false;  // No new computed data yet

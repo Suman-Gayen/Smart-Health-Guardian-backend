@@ -44,8 +44,8 @@ def upload_data():
     #Create Firestore Record
     record = {
         "patient_id": data['patient_id'],
-        "HeartRate": data['heartrate'],
-        "SpO2": data['spo2'],
+        "heartrate": data['heartrate'],
+        "spo2": data['spo2'],
         "timestamp": datetime.now()
     }
     db.collection("health_data").add(record) #health_data →Firestore collection
@@ -73,7 +73,7 @@ def generate_pdf(data):
     pdf = FPDF()
     pdf.add_page()
     pdf.set_font("Arial", size=16)
-    status = health_status(data['heartrate']) # Calculates health condition
+    status = health_status(data["heartrate"]) # Calculates health condition
     desc = recommendation(status) # Gets medical advice
     
     ist_time = data["timestamp"] + timedelta(hours=5, minutes=30) # Convert UTC →IST
@@ -105,7 +105,7 @@ def download_report(patient_id):
         data = doc.to_dict() # Converts Firestore document → dictionary
         path = generate_pdf(data)
         return send_file(path, as_attachment=True) # Sends file to browser for download
-
+    
     return {"error": "No data found"}
 
 #STEP7: Run Flask Application

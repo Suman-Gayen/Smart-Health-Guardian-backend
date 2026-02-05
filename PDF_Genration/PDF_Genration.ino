@@ -10,69 +10,52 @@ const char* ssid = "suman";
 const char* password = "12345678";
 const char* serverURL = "https://smart-health-api-m32s.onrender.com/upload";  // cloud Flask API endpoint (Render URL), ESP32 sends sensor data to this URL using HTTP POST.
 
-unsigned long lastPost = 0;
-const unsigned long POST_INTERVAL = 3000;  // 3 seconds
-
 //===== Patient ID Generator Function =======
 String generatePatientID() {
   uint32_t randNum = esp_random() % 100000;  // 0–99999
   return "P" + String(randNum);
 }
-//=========
+unsigned long lastPost = 0;
+const unsigned long POST_INTERVAL = 10000;
+
 void setup() {
   Serial.begin(115200);
   setupMAX30102();
   WiFi.begin(ssid, password);
   while (WiFi.status() != WL_CONNECTED) {
     delay(500);
-    Serial.println("....");
+    Serial.print(".");
   }
 }
 
 void loop() {
-
   if (updateMAX30102(sensorData) && sensorData.valid) {
 
-    // -------- Finger detection --------
-    if (sensorData.irData < 10000) {
-      Serial.println("No finger detected");
-      return;  // skip printing other values
-    }
-
-    String patient_id = generatePatientID();  // Call the function and Creates a new patient ID per transmission
-
-    // -------- Heart rate correction --------
-    int rawHR;
-    if (sensorData.heartRate > 90) {
-      rawHR = sensorData.heartRate - 90;
-    } else {
-      rawHR = sensorData.heartRate;
-    }
+    String patient_id;
+    patient_id = generatePatientID();
     // -------- Serial output --------
-    Serial.print("Patient_ID:");
-    Serial.print(patient_id);
-    Serial.print(" HR=");
-    Serial.print(rawHR);
-    Serial.print(" SpO2=");
-    Serial.println(sensorData.spo2);
+    Serial.printf(patient_id);
+    Serial.printf("Patient:%s HR=%d SpO2=%d\n",
+                  patient_id.c_str(),
+                  sensorData.heartRate,
+                  sensorData.spo2);
 
-    HTTPClient http;                                     // Creates HTTP client object
-    http.begin(serverURL);                               // Connects to Flask backend
-    http.addHeader("Content-Type", "application/json");  // Set request type as JSON
+    if (WiFi.status() == WL_CONNECTED && millis() - lastPost > POST_INTERVAL) {
 
-    // Send to server only every 5 seconds
-    if (millis() - lastPost > POST_INTERVAL) {
       lastPost = millis();
 
-      // Create JSON Payload
+      HTTPClient http;
+      http.begin(serverURL);
+      http.addHeader("Content-Type", "application/json");
+
       String json = "{";
       json += "\"patient_id\":\"" + patient_id + "\",";
-      json += "\"heartrate\":" + String(rawHR) + ",";
+      json += "\"heartrate\":" + String(sensorData.heartRate) + ",";
       json += "\"spo2\":" + String(sensorData.spo2);
       json += "}";
 
-      http.POST(json);  // SendsHTTPPOSTrequest
-      http.end();       // Flask receives data
+      http.POST(json);
+      http.end();
     }
   }
 }

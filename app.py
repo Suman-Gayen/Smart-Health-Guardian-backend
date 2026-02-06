@@ -73,9 +73,6 @@ def generate_pdf(data):
     pdf = FPDF()
     pdf.add_page()
     pdf.set_font("Arial", 'B', size=14)
-    pdf.SetDrawColor(0,80,180);
-    pdf.SetFillColor(230,230,0);
-    pdf.SetTextColor(220,50,50);
     status = health_status(data["heartrate"]) # Calculates health condition
     desc = recommendation(status) # Gets medical advice
     

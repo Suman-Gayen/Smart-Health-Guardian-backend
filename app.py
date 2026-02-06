@@ -72,7 +72,7 @@ def recommendation( status ):
 def generate_pdf(data):
     pdf = FPDF()
     pdf.add_page()
-    pdf.set_font("Arial", 'B', size=18)
+    pdf.set_font("Arial", 'B', size=14)
     pdf.SetDrawColor(0,80,180);
     pdf.SetFillColor(230,230,0);
     pdf.SetTextColor(220,50,50);
@@ -83,7 +83,6 @@ def generate_pdf(data):
     
     pdf.cell(200, 10, "SMART HEALTH REPORT", ln=True, align="C")
     pdf.ln(10)
-    pdf.set_font("Times", 'B', size=14)
     pdf.cell(200, 10, f"Patient ID: {data['patient_id']}", ln=True)
     pdf.cell(200, 10, f"HeartRate: {data['heartrate']} bpm ", ln=True)
     pdf.cell(200, 10, f"SpO2: {data['spo2']} %", ln=True)

@@ -9,7 +9,7 @@ MAX30102 sensorData;
 const char* ssid = "suman";
 const char* password = "12345678";
 const char* serverURL = "https://smart-health-api-m32s.onrender.com/upload";  // cloud Flask API endpoint (Render URL), ESP32 sends sensor data to this URL using HTTP POST.
-// https://smart-health-api-m32s.onrender.com/download/P4326
+// https://smart-health-api-m32s.onrender.com/download/P39335
 //===== Patient ID Generator Function =======
 String generatePatientID() {
   uint32_t randNum = esp_random() % 100000;  // 0–99999

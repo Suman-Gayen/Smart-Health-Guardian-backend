@@ -16,10 +16,10 @@ void setup_ad8232() {
 }
 
 void update_ad8232(AD8232 *data) {
-  Serial.print("LO+: ");
-  Serial.print(digitalRead(ECG_LO_PLUS_PIN));
-  Serial.print("  LO-: ");
-  Serial.println(digitalRead(ECG_LO_MINUS_PIN));
+  // Serial.print("LO+: ");
+  // Serial.print(digitalRead(ECG_LO_PLUS_PIN));
+  // Serial.print("  LO-: ");
+  // Serial.println(digitalRead(ECG_LO_MINUS_PIN));
   // AD8232 data;
   if ((digitalRead(ECG_LO_PLUS_PIN)) || (digitalRead(ECG_LO_MINUS_PIN))) {
     strcpy(data->ecgJsonData, "!leads_off");

@@ -2,5 +2,8 @@ flask
 firebase-admin
 fpdf
 gunicorn
+matplotlib
+numpy
+
 
 

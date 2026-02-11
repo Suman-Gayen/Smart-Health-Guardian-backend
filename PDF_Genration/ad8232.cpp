@@ -23,6 +23,7 @@ void update_ad8232(AD8232 *data) {
   // AD8232 data;
   if ((digitalRead(ECG_LO_PLUS_PIN)) || (digitalRead(ECG_LO_MINUS_PIN))) {
     strcpy(data->ecgJsonData, "!leads_off");
+    delay(1000);
     return;
   }
   for (int i = 0; i < SAMPLE_COUNT; i++) {  // filtered read

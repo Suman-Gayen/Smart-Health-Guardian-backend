@@ -1,7 +1,7 @@
 #ifndef MAX30102_SENSOR_H
 #define MAX30102_SENSOR_H
 
-// Structure to hold one "packet" of processed sensor data
+// Structure to hold "packet" of processed sensor data
 struct MAX30102 {
   float redData;     // Raw RED LED value
   float irData;      // Raw IR LED value

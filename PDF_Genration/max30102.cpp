@@ -72,33 +72,32 @@ bool updateMAX30102(MAX30102 &data) {
   // Wrap index to keep buffer size fixed at 100
   if (bufferIndex >= 100) bufferIndex = 0;
 
-  if (millis() - lastCalc >= 1000 && data.irData > 10000) {  // compute once per second and data will be pass when ir value is greater than 10000
+  if (millis() - lastCalc >= 1000) {  // compute once per second and data will be pass when ir value is greater than 10000
     lastCalc = millis();
+    if (data.irData > 10000) {
+      // Compute HR and SpO2 from buffers
+      maxim_heart_rate_and_oxygen_saturation(
+        // Run algorithm once every 1 second
+        irBuffer, 100, redBuffer,
+        &spo2, &validSPO2,
+        &heartRate, &validHeartRate);
 
-    // Compute HR and SpO2 from buffers
-    maxim_heart_rate_and_oxygen_saturation(
-      // Run algorithm once every 1 second
-      irBuffer, 100, redBuffer,
-      &spo2, &validSPO2,
-      &heartRate, &validHeartRate);
+      // -------- Heart rate correction --------
+      int rawHR;
+      if (heartRate > 90) {
+        rawHR = heartRate - 90;
+      } else {
+        rawHR = heartRate;
+      }
 
-    // -------- Heart rate correction --------
-    int rawHR;
-    if (heartRate > 90) {
-      rawHR = heartRate - 90;
-    } else {
-      rawHR = heartRate;
-    }
+      // Only report valid measurements
+      data.valid = validHeartRate && validSPO2;
+      data.heartRate = data.valid ? rawHR : 0;
+      data.spo2 = data.valid ? spo2 : 0;
 
-    // Only report valid measurements
-    data.valid = validHeartRate && validSPO2;
-    data.heartRate = data.valid ? rawHR : 0;
-    data.spo2 = data.valid ? spo2 : 0;
-
-    return data.valid;  // New data ready for printing
-  }else{
-    return 0;  // New data ready for printing
-  }
+      return data.valid;
+    }  // New data ready for printing
+  } 
 
   return false;  // No new computed data yet
 }

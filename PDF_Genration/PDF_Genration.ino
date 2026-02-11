@@ -1,10 +1,13 @@
+#include "HardwareSerial.h"
 #include <WiFi.h>
 #include <HTTPClient.h>  // Sends HTTP requests (POST/GET) to Flask backend
 
 #include "max30102.h"
+#include "ad8232.h"
 
 // Holds latest processed sensor data
-MAX30102 sensorData;
+MAX30102 max30102_RawData;
+AD8232 ad8232_RawData;
 
 const char* ssid = "suman";
 const char* password = "12345678";
@@ -20,44 +23,66 @@ const unsigned long POST_INTERVAL = 10000;
 
 void setup() {
   Serial.begin(115200);
-  setupMAX30102();
   WiFi.begin(ssid, password);
   while (WiFi.status() != WL_CONNECTED) {
     delay(500);
-    Serial.print(".");
+    Serial.print("!");
   }
+  setupMAX30102();
+  setup_ad8232();
 }
 
 void loop() {
-  if (updateMAX30102(sensorData) && sensorData.valid) {
 
-    String patient_id;
-    patient_id = generatePatientID();
-    // -------- Serial output --------
-    Serial.printf(patient_id);
-    Serial.printf("Patient:%s HR=%d SpO2=%d\n",
-                  patient_id.c_str(),
-                  sensorData.heartRate,
-                  sensorData.spo2);
+  // ---- 1. Always update both sensors independently ----
+  bool newPPG = updateMAX30102(max30102_RawData);
+  update_ad8232(&ad8232_RawData);
 
-    if (WiFi.status() == WL_CONNECTED && millis() - lastPost > POST_INTERVAL) {
+  // ---- 2. Serial monitoring (independent) ----
+  if (max30102_RawData.irData < 10000) {
+    Serial.println("Finger not detected");
+  }
 
-      lastPost = millis();
+  if (newPPG && max30102_RawData.valid) {
+    Serial.printf("HR=%d  SpO2=%d\n",
+                  max30102_RawData.heartRate,
+                  max30102_RawData.spo2);
+  }
 
-      HTTPClient http;
-      http.begin(serverURL);
-      http.addHeader("Content-Type", "application/json");
+  Serial.println(ad8232_RawData.ecgJsonData);
 
-      String json = "{";
-      json += "\"patient_id\":\"" + patient_id + "\",";
-      json += "\"heartrate\":" + String(sensorData.heartRate) + ",";
-      json += "\"spo2\":" + String(sensorData.spo2);
-      json += "}";
+  // ---- 3. Timed cloud upload ----
+  if (WiFi.status() == WL_CONNECTED &&
+      millis() - lastPost > POST_INTERVAL) {
 
-      http.POST(json);
-      http.end();
+    lastPost = millis();
+
+    String patient_id = generatePatientID();
+
+    HTTPClient http;
+    http.begin(serverURL);
+    http.addHeader("Content-Type", "application/json");
+
+    // Build JSON safely
+    String json = "{";
+    json += "\"patient_id\":\"" + patient_id + "\",";
+
+    if (max30102_RawData.valid) {
+      json += "\"heartrate\":" + String(max30102_RawData.heartRate) + ",";
+      json += "\"spo2\":" + String(max30102_RawData.spo2) + ",";
+    } else {
+      json += "\"heartrate\":null,";
+      json += "\"spo2\":null,";
     }
-  }else{
-    Serial.printf("Finger has not detected!");
+
+    json += "\"ecg\":";
+    json += ad8232_RawData.ecgJsonData;
+    json += "}";
+
+    int responseCode = http.POST(json);
+    Serial.printf("HTTP Response: %d\n", responseCode);
+
+    http.end();
   }
 }
+

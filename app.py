@@ -27,6 +27,8 @@ from datetime import datetime
 from datetime import timedelta
 import os # Read Firebase credentials from environment variables
 import json # Required for cloud deployment
+import numpy as np
+import matplotlib.pyplot as plt
 
 #step 2 - Flask App & Firebase Initialization
 app = Flask(__name__) # Creates Flask application instance, __name__ tells Flask where the app is located
@@ -46,10 +48,32 @@ def upload_data():
         "patient_id": data['patient_id'],
         "heartrate": data['heartrate'],
         "spo2": data['spo2'],
+         "ecg": data["ecg"],
         "timestamp": datetime.now()
     }
     db.collection("health_data").add(record) #health_data →Firestore collection
     return {"status": "Data stored successfully"}
+
+def plot_real_ecg(ecg_samples):
+    ecg = np.array(ecg_samples)
+    voltage = (ecg / 4095.0) * 3.3  # ESP32 ADC conversion
+
+    sampling_rate = 250  # Hz
+    time = np.arange(len(voltage)) / sampling_rate
+
+    plt.figure(figsize=(7, 2.5))
+    plt.plot(time, voltage)
+    plt.title("ECG Signal")
+    plt.xlabel("Time (s)")
+    plt.ylabel("Voltage (V)")
+    plt.grid(True)
+
+    img_path = "reports/ecg_wave.png"
+    plt.savefig(img_path)
+    plt.close()
+
+    return img_path
+
 
 # STEP4: Health Analysis Logic
 def health_status(HR):
@@ -86,10 +110,16 @@ def generate_pdf(data):
     pdf.cell(200, 10, f"Health Status: {status}", ln=True)
     pdf.cell(200, 10, f"Description: {desc}", ln=True)
     pdf.cell(200, 10, f"Date & Time (IST): {ist_time}", ln=True)
+    pdf.ln(5)
+    pdf.cell(200, 10, "ECG Analysis:", ln=True)
+    ecg_img = plot_real_ecg(data["ecg"])
+    pdf.image(ecg_img, x=10, w=190)
     # Save PDF File
     file_path = f"reports/{data['patient_id']}_report.pdf"
     pdf.output(file_path)
     return file_path
+
+
 
 #STEP6: /download/<patient_id> API
 @app.route('/download/<patient_id>')

@@ -5,6 +5,7 @@
 
 struct AD8232 {
   char ecgJsonData[ECG_JSON_BUF_SIZE];
+  bool valid;  //ECG validity flag
 };
 
 void setup_ad8232();

@@ -20,17 +20,38 @@ void update_ad8232(AD8232 *data) {
   // Serial.print(digitalRead(ECG_LO_PLUS_PIN));
   // Serial.print("  LO-: ");
   // Serial.println(digitalRead(ECG_LO_MINUS_PIN));
-  // AD8232 data;
   if ((digitalRead(ECG_LO_PLUS_PIN)) || (digitalRead(ECG_LO_MINUS_PIN))) {
     strcpy(data->ecgJsonData, "!leads_off");
-    delay(1000);
+    data->valid = false;
     return;
   }
+
+  // ---- Sample ECG ----
   for (int i = 0; i < SAMPLE_COUNT; i++) {  // filtered read
     ecgData[i] = analogRead(ECG_OUTPUT_PIN);
     delayMicroseconds(4000);
     yield();  // feeds watchdog
   }
+  // ---- Flatline Check ----
+  bool allSame = true;
+  uint16_t firstValue = ecgData[0];
+
+  for (int i = 1; i < SAMPLE_COUNT; i++) {
+    if (ecgData[i] != firstValue) {
+      allSame = false;
+      break;
+    }
+  }
+
+  if (allSame && (firstValue == 0 || firstValue == 4095)) {
+    strcpy(data->ecgJsonData, "!flatline");
+    data->valid = false;
+    return;
+  } else {
+    data->valid = true;
+  }
+
+
   char *p = data->ecgJsonData;
   *p++ = '[';
 

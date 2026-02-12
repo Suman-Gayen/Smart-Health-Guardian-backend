@@ -19,7 +19,7 @@ String generatePatientID() {
   return "P" + String(randNum);
 }
 unsigned long lastPost = 0;
-const unsigned long POST_INTERVAL = 10000;
+const unsigned long POST_INTERVAL = 5000;
 
 void setup() {
   Serial.begin(115200);
@@ -33,27 +33,27 @@ void setup() {
 }
 
 void loop() {
-
   // ---- 1. Always update both sensors independently ----
-  bool newPPG = updateMAX30102(max30102_RawData);
+  updateMAX30102(max30102_RawData);
   update_ad8232(&ad8232_RawData);
-
-  // ---- 2. Serial monitoring (independent) ----
+  // Check finger detection BEFORE trying to print
   if (max30102_RawData.irData < 10000) {
     Serial.println("Finger not detected");
+    // Don't proceed with printing/posting
+  } else {
+    Serial.println("Finger DETECTED!");
   }
-
-  if (newPPG && max30102_RawData.valid) {
+  if (max30102_RawData.valid) {
     Serial.printf("HR=%d  SpO2=%d\n",
                   max30102_RawData.heartRate,
                   max30102_RawData.spo2);
   }
 
-  Serial.println(ad8232_RawData.ecgJsonData);
-
-  // ---- 3. Timed cloud upload ----
-  if (WiFi.status() == WL_CONNECTED &&
-      millis() - lastPost > POST_INTERVAL) {
+  if (ad8232_RawData.valid) {
+    Serial.println(ad8232_RawData.ecgJsonData);
+  }
+  // ----  Timed cloud upload ----
+  if (WiFi.status() == WL_CONNECTED && millis() - lastPost > POST_INTERVAL) {
 
     lastPost = millis();
 
@@ -67,6 +67,10 @@ void loop() {
     String json = "{";
     json += "\"patient_id\":\"" + patient_id + "\",";
 
+    if (ad8232_RawData.valid) {
+      json += "\"ecg\":";
+      json += ad8232_RawData.ecgJsonData;
+    }
     if (max30102_RawData.valid) {
       json += "\"heartrate\":" + String(max30102_RawData.heartRate) + ",";
       json += "\"spo2\":" + String(max30102_RawData.spo2) + ",";
@@ -74,9 +78,6 @@ void loop() {
       json += "\"heartrate\":null,";
       json += "\"spo2\":null,";
     }
-
-    json += "\"ecg\":";
-    json += ad8232_RawData.ecgJsonData;
     json += "}";
 
     int responseCode = http.POST(json);
@@ -84,5 +85,5 @@ void loop() {
 
     http.end();
   }
+  delay(1000);
 }
-

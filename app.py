@@ -97,15 +97,21 @@ def generate_pdf(data):
     pdf = FPDF()
     pdf.add_page()
     pdf.set_font("Arial", 'B', size=14)
-    status = health_status(data["heartrate"]) # Calculates health condition
-    desc = recommendation(status) # Gets medical advice
-    
+    hr_value = data.get("heartrate")
+    if hr_value in [None, "", " ", "null"]:
+        status = "NO DATA"
+        desc = "No heart rate data available."
+    else:
+        hr_value = int(hr_value)
+        status = health_status(hr_value)
+        desc = recommendation(status)
+        
     ist_time = data["timestamp"] + timedelta(hours=5, minutes=30) # Convert UTC →IST
     
-    pdf.cell(200, 10, "SMART HEALTH REPORT", ln=True, align="C")
+    pdf.cell(200, 10, "HEALTH REPORT", ln=True, align="C")
     pdf.ln(10)
     pdf.cell(200, 10, f"Patient ID: {data['patient_id']}", ln=True)
-    pdf.cell(200, 10, f"HeartRate: {data['heartrate']} bpm ", ln=True)
+    pdf.cell(200, 10, f"HeartRate: {hr_value if hr_value else 'N/A'} bpm", ln=True)
     pdf.cell(200, 10, f"SpO2: {data['spo2']} %", ln=True)
     pdf.cell(200, 10, f"Health Status: {status}", ln=True)
     pdf.cell(200, 10, f"Description: {desc}", ln=True)
@@ -119,20 +125,30 @@ def generate_pdf(data):
     pdf.output(file_path)
     return file_path
 
+#STEP6: Data Validation Function
+def is_all_data_empty(data):
+    hr = data.get("heartrate")
+    spo2 = data.get("spo2")
+    ecg = data.get("ecg")
+    # Normalize empty values
+    hr_empty = hr in [None, "", " ", "null"]
+    spo2_empty = spo2 in [None, "", " ", "null"]
+    ecg_empty = ecg in [None, "", " ", "null", []]
+    
+    return hr_empty and spo2_empty and ecg_empty
 
-
-#STEP6: /download/<patient_id> API
+#STEP7: /download/<patient_id> API
 @app.route('/download/<patient_id>')
 def download_report(patient_id):
     docs = db.collection("health_data") \
              .where("patient_id", "==", patient_id) \
              .order_by("timestamp", direction=firestore.Query.DESCENDING) \
              .limit(1).stream()
-
-
     #Generate & Send PDF
     for doc in docs:
         data = doc.to_dict() # Converts Firestore document → dictionary
+         if is_all_data_empty(data):
+            return {"error": "No valid health data available. PDF cannot be generated."}, 400
         path = generate_pdf(data)
         return send_file(path, as_attachment=True) # Sends file to browser for download
     

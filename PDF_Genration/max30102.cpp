@@ -25,7 +25,6 @@ static int8_t validHeartRate;
 // Used to control how often calculations occur
 static unsigned long lastCalc = 0;
 
-
 void setupMAX30102() {
   // Initialize I2C on ESP32 (custom pins)
   Wire.begin(21, 22);
@@ -90,9 +89,10 @@ bool updateMAX30102(MAX30102 &data) {
       int rawHR = (heartRate > 90) ? (heartRate - 90) : heartRate;
 
       // Only report valid measurements
+      bool fingerDetected = (irBuffer[i] > 10000);
       data.redData = redBuffer[i];
       data.irData = irBuffer[i];
-      data.valid = validHeartRate && validSPO2;
+      data.valid = validHeartRate && validSPO2 && fingerDetected;
       data.heartRate = data.valid ? rawHR : 0;
       data.spo2 = data.valid ? spo2 : 0;
       return data.valid;
@@ -102,5 +102,4 @@ bool updateMAX30102(MAX30102 &data) {
     //After gathering 25 new samples recalculate HR and SP02
     maxim_heart_rate_and_oxygen_saturation(irBuffer, bufferLength, redBuffer, &spo2, &validSPO2, &heartRate, &validHeartRate);
   }
-
 }

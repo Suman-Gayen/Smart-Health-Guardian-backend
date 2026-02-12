@@ -118,8 +118,12 @@ def generate_pdf(data):
     pdf.cell(200, 10, f"Date & Time (IST): {ist_time}", ln=True)
     pdf.ln(5)
     pdf.cell(200, 10, "ECG Analysis:", ln=True)
-    ecg_img = plot_real_ecg(data["ecg"])
-    pdf.image(ecg_img, x=10, w=190)
+    ecg_data = data.get("ecg")
+    if ecg_data not in [None, "", " ", "null", []]:
+        ecg_img = plot_real_ecg(ecg_data)
+        pdf.image(ecg_img, x=10, w=190)
+    else:
+        pdf.cell(200, 10, "No ECG Data Available", ln=True)
     # Save PDF File
     file_path = f"reports/{data['patient_id']}_report.pdf"
     pdf.output(file_path)
@@ -144,14 +148,16 @@ def download_report(patient_id):
              .where("patient_id", "==", patient_id) \
              .order_by("timestamp", direction=firestore.Query.DESCENDING) \
              .limit(1).stream()
-    #Generate & Send PDF
+
     for doc in docs:
-        data = doc.to_dict() # Converts Firestore document → dictionary
-         if is_all_data_empty(data):
+        data = doc.to_dict()
+
+        if is_all_data_empty(data):
             return {"error": "No valid health data available. PDF cannot be generated."}, 400
+
         path = generate_pdf(data)
-        return send_file(path, as_attachment=True) # Sends file to browser for download
-    
+        return send_file(path, as_attachment=True)
+
     return {"error": "No data found"}
 
 #STEP7: Run Flask Application

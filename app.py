@@ -48,6 +48,7 @@ def upload_data():
         "patient_id": data['patient_id'],
         "heartrate": data['heartrate'],
         "spo2": data['spo2'],
+        "temperature": data['temperature'],
          "ecg": data["ecg"],
         "timestamp": datetime.now()
     }
@@ -114,6 +115,7 @@ def generate_pdf(data):
     pdf.cell(200, 10, f"HeartRate: {hr_value if hr_value else 'N/A'} bpm", ln=True)
     pdf.cell(200, 10, f"SpO2: {data['spo2']} %", ln=True)
     pdf.cell(200, 10, f"Health Status: {status}", ln=True)
+    pdf.cell(200, 10, f"Body Temperature: {data['temperature']} %", ln=True)
     pdf.cell(200, 10, f"Description: {desc}", ln=True)
     pdf.cell(200, 10, f"Date & Time (IST): {ist_time}", ln=True)
     pdf.ln(5)
@@ -133,13 +135,15 @@ def generate_pdf(data):
 def is_all_data_empty(data):
     hr = data.get("heartrate")
     spo2 = data.get("spo2")
+    temperature = data.get("temperature")
     ecg = data.get("ecg")
     # Normalize empty values
     hr_empty = hr in [None, "", " ", "null"]
     spo2_empty = spo2 in [None, "", " ", "null"]
+    temperature_empty = temperature in [None, "", " ", "null"]
     ecg_empty = ecg in [None, "", " ", "null", []]
     
-    return hr_empty and spo2_empty and ecg_empty
+    return hr_empty and spo2_empty and temperature_empty and ecg_empty
 
 #STEP7: /download/<patient_id> API
 @app.route('/download/<patient_id>')

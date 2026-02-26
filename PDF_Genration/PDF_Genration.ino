@@ -38,9 +38,9 @@ void loop() {
   update_ad8232(&ad8232_RawData);
   if (max30102_RawData.valid) {
     Serial.println("Finger DETECTED!");
-    Serial.printf("HR=%d  SpO2=%d\n",
+    Serial.printf("HR=%d  SpO2=%d temp=%.2f\n",
                   max30102_RawData.heartRate,
-                  max30102_RawData.spo2);
+                  max30102_RawData.spo2, max30102_RawData.temperature);
   } else {
     Serial.println("Finger not detected");
   }
@@ -76,6 +76,10 @@ void loop() {
 
     json += "\"spo2\":";
     json += max30102_RawData.valid ? String(max30102_RawData.spo2) : "null";
+    json += ",";
+    
+    json += "\"temperature\":";
+    json += max30102_RawData.valid ? String(max30102_RawData.temperature) : "null";
     json += ",";
 
     json += "\"ecg\":";

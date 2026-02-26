@@ -46,6 +46,9 @@ void setupMAX30102() {
     411,  // Pulse width (higher = better resolution)
     4096  // ADC range
   );
+
+  particleSensor.enableDIETEMPRDY(); //Enable the temp ready interrupt. This is required.
+
 }
 
 
@@ -95,8 +98,10 @@ bool updateMAX30102(MAX30102 &data) {
       data.valid = validHeartRate && validSPO2 && fingerDetected;
       data.heartRate = data.valid ? rawHR : 0;
       data.spo2 = data.valid ? spo2 : 0;
+
+      data.temperature = particleSensor.readTemperature();
+      
       return data.valid;
-      //
     }
 
     //After gathering 25 new samples recalculate HR and SP02

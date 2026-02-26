@@ -8,6 +8,7 @@ struct MAX30102 {
   int heartRate;        // Calculated heart rate (BPM)
   int spo2;             // Calculated SpO2 (%)
   bool valid;           // True if HR & SpO2 are valid
+  float temperature;
 };
 
 // Initializes I2C and configures MAX30102 registers

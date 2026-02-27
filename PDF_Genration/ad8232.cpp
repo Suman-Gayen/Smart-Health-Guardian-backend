@@ -58,5 +58,4 @@ void update_ad8232(AD8232 *data) {
 
   *p++ = ']';
   *p = '\0';
-  delay(4);  // ~250 samples per second (good for ECG)
 }

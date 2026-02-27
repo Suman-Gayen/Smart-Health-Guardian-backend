@@ -19,7 +19,7 @@ String generatePatientID() {
   return "P" + String(randNum);
 }
 unsigned long lastPost = 0;
-const unsigned long POST_INTERVAL = 5000;
+const unsigned long POST_INTERVAL = 2000;
 
 void setup() {
   Serial.begin(115200);

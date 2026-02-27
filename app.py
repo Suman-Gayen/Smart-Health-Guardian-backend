@@ -115,7 +115,7 @@ def generate_pdf(data):
     pdf.cell(200, 10, f"HeartRate: {hr_value if hr_value else 'N/A'} bpm", ln=True)
     pdf.cell(200, 10, f"SpO2: {data['spo2']} %", ln=True)
     pdf.cell(200, 10, f"Health Status: {status}", ln=True)
-    pdf.cell(200, 10, f"Body Temperature: {data['temperature']} %", ln=True)
+    pdf.cell(200, 10, f"Body Temperature: {data['temperature']} ℃", ln=True)
     pdf.cell(200, 10, f"Description: {desc}", ln=True)
     pdf.cell(200, 10, f"Date & Time (IST): {ist_time}", ln=True)
     pdf.ln(5)

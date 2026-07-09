@@ -36,14 +36,14 @@
 //   appId:             "YOUR_APP_ID"
 // };
 const FIREBASE_CONFIG = {
-  apiKey: "AIzaSyCMALTReUqNOeNEt72rMls2p5sUHN1qfSM",
+   apiKey: "AIzaSyCMALTReUqNOeNEt72rMls2p5sUHN1qfSM",
   authDomain: "demofirebase-f3437.firebaseapp.com",
   projectId: "demofirebase-f3437",
   storageBucket: "demofirebase-f3437.firebasestorage.app",
   messagingSenderId: "890458084034",
   appId: "1:890458084034:web:1fa3ce3a2a1b877e69e15b",
-  // measurementId: "G-K68N92X5Z2"
 };
+
 
 /**
  * Firestore path = collection / document

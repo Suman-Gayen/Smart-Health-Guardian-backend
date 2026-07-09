@@ -95,6 +95,7 @@ def recommendation( status ):
 
 # STEP5: PDF Generation Function
 def generate_pdf(data):
+    os.makedirs("reports", exist_ok=True)
     pdf = FPDF()
     pdf.add_page()
     pdf.set_font("Arial", 'B', size=14)

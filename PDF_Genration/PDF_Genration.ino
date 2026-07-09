@@ -10,7 +10,7 @@ MAX30102 max30102_RawData;
 AD8232 ad8232_RawData;
 
 const char* ssid = "suman";
-const char* password = "suman2003";
+const char* password = "12345678";
 const char* serverURL = "https://smart-health-api-m32s.onrender.com/upload";  // cloud Flask API endpoint (Render URL), ESP32 sends sensor data to this URL using HTTP POST.
 // https://smart-health-api-m32s.onrender.com/download/P74842
 //===== Patient ID Generator Function =======

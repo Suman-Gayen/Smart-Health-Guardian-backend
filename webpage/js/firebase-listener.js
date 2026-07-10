@@ -20,7 +20,7 @@ let _demoEcgIdx  = 0;
 
 // ── Bootstrap ───────────────────────────────────────────────────────────────
 window.addEventListener('DOMContentLoaded', () => {
-  if (FIREBASE_CONFIG.apiKey === 'YOUR_API_KEY') {
+  if (FIREBASE_CONFIG.apiKey === 'AIzaSyCMALTReUqNOeNEt72rMls2p5sUHN1qfSM') {
     console.info('[VitalWatch] Firebase not configured → Demo Mode');
     UI.setStatus('demo');
     _startDemo();

@@ -19,14 +19,17 @@ let _demoTimer   = null;
 let _demoEcgIdx  = 0;
 
 // ── Bootstrap ───────────────────────────────────────────────────────────────
+// window.addEventListener('DOMContentLoaded', () => {
+//   if (FIREBASE_CONFIG.apiKey === 'AIzaSyCMALTReUqNOeNEt72rMls2p5sUHN1qfSM') {
+//     console.info('[VitalWatch] Firebase not configured → Demo Mode');
+//     UI.setStatus('demo');
+//     _startDemo();
+//   } else {
+//     _initFirestore();
+//   }
+// });
 window.addEventListener('DOMContentLoaded', () => {
-  if (FIREBASE_CONFIG.apiKey === 'AIzaSyCMALTReUqNOeNEt72rMls2p5sUHN1qfSM') {
-    console.info('[VitalWatch] Firebase not configured → Demo Mode');
-    UI.setStatus('demo');
-    _startDemo();
-  } else {
-    _initFirestore();
-  }
+  _initFirestore();
 });
 
 // ── Init Firestore ──────────────────────────────────────────────────────────

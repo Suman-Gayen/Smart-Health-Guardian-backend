@@ -242,7 +242,7 @@ body::after {
 .ecg-wrapper {
   position: relative;
   width: 100%;
-  height: 220px;           /* MODIFIED: was 160px — taller canvas for better peak visibility */
+  height: 260px;           /* MODIFIED: was 160px — taller canvas for better peak visibility */
   background: #040a07;
   border: 1px solid var(--border);
   border-radius: var(--r);
